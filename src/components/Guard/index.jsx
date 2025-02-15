@@ -5,23 +5,38 @@ const Guard = () => {
     const [filter, setFilter] = useState("all");
 
     useEffect(() => {
-        const storedRequests = JSON.parse(localStorage.getItem("requests")) || [];
-        setRequests(storedRequests);
+        setRequests(JSON.parse(localStorage.getItem("requests")) || []);
     }, []);
 
-    const handleAction = (username, action) => {
+    const handleApprove = (username) => {
         const updatedRequests = requests.filter(req => req.username !== username);
-        localStorage.setItem("requests", JSON.stringify(updatedRequests));
         setRequests(updatedRequests);
-        alert(`${username}'s request has been ${action}.`);
+        localStorage.setItem("requests", JSON.stringify(updatedRequests));
+
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const userIndex = users.findIndex(u => u.username === username);
+        if (userIndex !== -1) {
+            users[userIndex].status = users[userIndex].status === "in" ? "out" : "in";
+            localStorage.setItem("users", JSON.stringify(users));
+        }
+
+        alert("Request approved!");
     };
 
-    const filteredRequests = filter === "all" ? requests : requests.filter(req => req.role === filter);
+    const handleReject = (username) => {
+        const updatedRequests = requests.filter(req => req.username !== username);
+        setRequests(updatedRequests);
+        localStorage.setItem("requests", JSON.stringify(updatedRequests));
+
+        alert("Request rejected!");
+    };
+
+    const filteredRequests = filter === "all" ? requests : requests.filter(r => r.role === filter);
 
     return (
         <div>
             <h2>Guard Panel</h2>
-            <label>Filter by Role: 
+            <label>Filter by role:
                 <select onChange={(e) => setFilter(e.target.value)}>
                     <option value="all">All</option>
                     <option value="student">Student</option>
@@ -30,18 +45,16 @@ const Guard = () => {
                     <option value="visitor">Visitor</option>
                 </select>
             </label>
-            <div>
-                {filteredRequests.length > 0 ? filteredRequests.map((req, index) => (
-                    <div key={index} style={{ border: "1px solid black", padding: "10px", margin: "10px" }}>
-                        <p><strong>User:</strong> {req.username} ({req.role})</p>
-                        <p><strong>Request Type:</strong> {req.requestType}</p>
-                        <p><strong>Timings:</strong> {req.timings}</p>
-                        <p><strong>Purpose:</strong> {req.purpose}</p>
-                        <button onClick={() => handleAction(req.username, "approved")}>Approve</button>
-                        <button onClick={() => handleAction(req.username, "rejected")}>Reject</button>
-                    </div>
-                )) : <p>No requests found.</p>}
-            </div>
+
+            <ul>
+                {filteredRequests.map((req, index) => (
+                    <li key={index}>
+                        {req.username} - {req.role} - {req.requestType}
+                        <button onClick={() => handleApprove(req.username)}>Approve</button>
+                        <button onClick={() => handleReject(req.username)}>Reject</button>
+                    </li>
+                ))}
+            </ul>
         </div>
     );
 };

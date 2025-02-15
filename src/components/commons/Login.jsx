@@ -8,7 +8,22 @@ const Login = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        login(username, password);
+
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+
+        // Check if admin login
+        if (username === "admin" && password === "admin") {
+            login(username, "admin", "admin");  // Admin role
+            return;
+        }
+
+        // Check if user exists in localStorage
+        const user = users.find(user => user.username === username && user.password === password);
+        if (user) {
+            login(user.username, user.password, user.role);
+        } else {
+            alert("Invalid username or password!");
+        }
     };
 
     return (

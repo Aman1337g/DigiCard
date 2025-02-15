@@ -1,13 +1,20 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { UserContext } from "../../context/UserContext";
 
 const Visitor = () => {
     const { user } = useContext(UserContext);
     const [request, setRequest] = useState({
         requestType: "out",
-        timings: "",
-        purpose: ""
+        purpose: "",
     });
+
+    useEffect(() => {
+        const users = JSON.parse(localStorage.getItem("users")) || [];
+        const currentUser = users.find(u => u.username === user.username);
+        if (currentUser) {
+            setRequest(prev => ({ ...prev, requestType: currentUser.status === "in" ? "out" : "in" }));
+        }
+    }, [user.username]);
 
     const handleChange = (e) => {
         setRequest({ ...request, [e.target.name]: e.target.value });
@@ -26,13 +33,7 @@ const Visitor = () => {
             <h2>Welcome, {user.username} (Visitor)</h2>
             <form onSubmit={handleSubmit}>
                 <label>Purpose: <input type="text" name="purpose" onChange={handleChange} required /></label>
-                <label>Type: 
-                    <select name="requestType" onChange={handleChange}>
-                        <option value="out">Out</option>
-                        <option value="in">In</option>
-                    </select>
-                </label>
-                <label>Timings: <input type="datetime-local" name="timings" onChange={handleChange} required /></label>
+                <label>Type: <input type="text" value={request.requestType} disabled /></label>
                 <button type="submit">Submit Request</button>
             </form>
         </div>
