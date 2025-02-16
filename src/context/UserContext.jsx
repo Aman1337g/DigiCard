@@ -7,21 +7,7 @@ export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
-    const login = (username, password) => {
-        const role = username.startsWith("admin")
-            ? "admin"
-            : username.startsWith("g")
-            ? "guard"
-            : username.startsWith("b") || username.startsWith("c")
-            ? "student"
-            : username.startsWith("s")
-            ? "staff"
-            : username.startsWith("f")
-            ? "faculty"
-            : username.startsWith("v")
-            ? "visitor"
-            : null;
-
+    const login = (username,role) => {
         if (role) {
             setUser({ username, role });
             navigate(`/${role}`);
@@ -31,8 +17,8 @@ export const UserProvider = ({ children }) => {
     };
 
     const logout = () => {
-        setUser(null);
         navigate("/login");
+        setUser(null);
     };
 
     return (

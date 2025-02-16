@@ -29,12 +29,34 @@ const Faculty = () => {
     };
 
     return (
-        <div>
-            <h2>Welcome, {user.username} (Faculty)</h2>
-            <form onSubmit={handleSubmit}>
-                <label>Purpose: <input type="text" name="purpose" onChange={handleChange} required /></label>
-                <label>Type: <input type="text" value={request.requestType} disabled /></label>
-                <button type="submit">Submit Request</button>
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
+            <h2 className="text-2xl font-bold mb-6">Welcome, {user.username} (Faculty)</h2>
+            <form onSubmit={handleSubmit} className="bg-white shadow-md rounded-lg p-6 w-full max-w-md">
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">Purpose:</label>
+                    <input 
+                        type="text" 
+                        name="purpose" 
+                        onChange={handleChange} 
+                        required 
+                        className="w-full p-2 border border-gray-300 rounded-lg"
+                    />
+                </div>
+                <div className="mb-4">
+                    <label className="block text-gray-700 text-sm font-bold mb-2">Type:</label>
+                    <input 
+                        type="text" 
+                        value={request.requestType} 
+                        disabled 
+                        className="w-full p-2 border border-gray-300 bg-gray-100 rounded-lg"
+                    />
+                </div>
+                <button 
+                    type="submit" 
+                    className="w-full bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                >
+                    Submit Request
+                </button>
             </form>
         </div>
     );

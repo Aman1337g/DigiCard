@@ -3,26 +3,36 @@ import { Link } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 
 const Navbar = () => {
-    const { user, logout } = useContext(UserContext);
+  const { user, logout } = useContext(UserContext);
 
-    return (
-        <nav style={{ padding: "10px", borderBottom: "1px solid black" }}>
-            <Link to="/">Home</Link>
-            {user ? (
-                <>
-                    {user.role === "admin" && <Link to="/admin">Admin</Link>}
-                    {user.role === "guard" && <Link to="/guard">Guard</Link>}
-                    {user.role === "student" && <Link to="/student">Student</Link>}
-                    {user.role === "faculty" && <Link to="/faculty">Faculty</Link>}
-                    {user.role === "staff" && <Link to="/staff">Staff</Link>}
-                    {user.role === "visitor" && <Link to="/visitor">Visitor</Link>}
-                    <button onClick={logout} style={{ marginLeft: "10px" }}>Logout</button>
-                </>
-            ) : (
-                <Link to="/login">Login</Link>
-            )}
-        </nav>
-    );
+  return (
+    <nav className="bg-gray-800 text-white p-4 shadow-md">
+      <div className="flex justify-between items-center max-w-6xl mx-auto">
+        <div className="flex gap-6">
+          <Link to="/admin" className="hover:text-gray-300">Admin</Link>
+          <Link to="/guard" className="hover:text-gray-300">Guard</Link>
+          <Link to="/student" className="hover:text-gray-300">Student</Link>
+          <Link to="/faculty" className="hover:text-gray-300">Faculty</Link>
+          <Link to="/staff" className="hover:text-gray-300">Staff</Link>
+          <Link to="/visitor" className="hover:text-gray-300">Visitor</Link>
+        </div>
+        <div>
+          {user ? (
+            <button 
+              onClick={logout} 
+              className="ml-4 px-4 py-2 bg-red-500 hover:bg-red-700 text-white rounded transition"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="px-4 py-2 bg-blue-500 hover:bg-blue-700 text-white rounded transition">
+              Login
+            </Link>
+          )}
+        </div>
+      </div>
+    </nav>
+  );
 };
 
 export default Navbar;

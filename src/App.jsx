@@ -8,13 +8,12 @@ import Faculty from "./components/Faculty";
 import Staff from "./components/Staff";
 import Visitor from "./components/Visitor";
 import Guard from "./components/Guard";
-import { Login, Unauthorized, NotFound,Navbar } from "./components/commons";
+import { Login, Unauthorized, NotFound} from "./components/commons";
 
 const App = () => {
     return (
         <Router>
             <UserProvider>
-                <Navbar />
                 <Routes>
                     <Route path="/" element={<Login />} />
                     <Route path="/login" element={<Login />} />
