@@ -39,9 +39,9 @@ const Admin = () => {
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <div className="container mx-auto p-6">
+      <div className="container  mx-auto p-6">
         <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
-        <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col w-full md:w-1/2 lg:w-1/3 mx-auto gap-4 mb-6">
           <input
             className="border p-2 rounded"
             type="text"
