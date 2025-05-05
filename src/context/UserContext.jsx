@@ -1,15 +1,22 @@
-import React, { createContext, useState } from "react";
+import React, { createContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
-    const login = (username,role) => {
+    // Load user from sessionStorage on initial load
+    const [user, setUser] = useState(() => {
+        const storedUser = sessionStorage.getItem("user");
+        return storedUser ? JSON.parse(storedUser) : null;
+    });
+
+    const login = (username, role, image) => {
         if (role) {
-            setUser({ username, role });
+            const userData = { username, role, image };
+            setUser(userData);
+            sessionStorage.setItem("user", JSON.stringify(userData));
             navigate(`/${role}`);
         } else {
             alert("Invalid username.");
@@ -17,8 +24,9 @@ export const UserProvider = ({ children }) => {
     };
 
     const logout = () => {
-        navigate("/login");
         setUser(null);
+        sessionStorage.removeItem("user");
+        navigate("/login");
     };
 
     return (

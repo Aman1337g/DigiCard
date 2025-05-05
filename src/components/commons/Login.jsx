@@ -8,61 +8,70 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      login(user.username, user.role);
+      login(user.username, user.role,user.image);
     }
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const users = JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      const res = await fetch("http://localhost:3000/api/users");
+      const users = await res.json();
 
-    if (username === "admin" && password === "admin") {
-      login(username, "admin");
-      return;
-    }
+      if (username === "admin" && password === "admin") {
+        login(username, "admin","https://res.cloudinary.com/dli8am5jx/image/upload/v1746353904/odd6tcqgspepommxrj3b.png");
+        return;
+      }
 
-    const user = users.find(
-      (user) => user.username === username && user.password === password
-    );
-    if (user) {
-      login(user.username, user.role);
-    } else {
-      alert("Invalid username or password!");
+      const matchedUser = users.find(
+        (u) => u.username === username && u.password === password
+      );
+
+      if (matchedUser) {
+        login(matchedUser.username, matchedUser.role,matchedUser.image);
+      } else {
+        alert("Invalid username or password!");
+      }
+    } catch (err) {
+      console.error("Error fetching users:", err);
+      alert("Failed to connect to the server.");
     }
   };
 
   return (
-    <div className=" bg-gray-100">
-    <div className="flex flex-col items-center w-full md:w-1/2 lg:w-1/3 mx-auto justify-center gap-12 h-screen p-6">
-      <div className="bg-white shadow-lg rounded-lg p-8 w-full text-center">
-        <h1 className="font-bold text-3xl text-gray-800 mb-6">Welcome to DigiCard!!!</h1>
-        <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
-          <input
-            className="border-2 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
-          <input
-            className="border-2 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg transition duration-300"
-            type="submit"
-          >
-            Login
-          </button>
-        </form>
+    <div className="bg-gray-100">
+      <div className="flex flex-col items-center w-full md:w-1/2 lg:w-1/3 mx-auto justify-center gap-12 h-screen p-6">
+        <div className="bg-white shadow-lg rounded-lg p-8 w-full text-center">
+          <h1 className="font-bold text-3xl text-gray-800 mb-6">
+            Welcome to DigiCard!!!
+          </h1>
+          <form className="flex flex-col gap-4 w-full" onSubmit={handleSubmit}>
+            <input
+              className="border-2 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+            />
+            <input
+              className="border-2 rounded-lg p-3 w-full focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-12 rounded-lg transition duration-300"
+              type="submit"
+            >
+              Login
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
     </div>
   );
 };
