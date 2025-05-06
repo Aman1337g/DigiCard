@@ -8,6 +8,7 @@ import Faculty from "./components/Faculty";
 import Staff from "./components/Staff";
 import Visitor from "./components/Visitor";
 import Guard from "./components/Guard";
+import Warden from "./components/Warden";
 import { Login, Unauthorized, NotFound} from "./components/commons";
 
 const App = () => {
@@ -23,6 +24,7 @@ const App = () => {
                     <Route path="/staff" element={<AuthHOC Component={Staff} allowedRoles={["staff"]} />} />
                     <Route path="/visitor" element={<AuthHOC Component={Visitor} allowedRoles={["visitor"]} />} />
                     <Route path="/guard" element={<AuthHOC Component={Guard} allowedRoles={["guard"]} />} />
+                    <Route path="/warden" element={<AuthHOC Component={Warden} allowedRoles={["warden"]} />} />
                     <Route path="/unauthorized" element={<Unauthorized />} />
                     <Route path="*" element={<NotFound />} />
                 </Routes>

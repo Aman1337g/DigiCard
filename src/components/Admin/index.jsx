@@ -14,7 +14,8 @@ const Admin = () => {
 
   // Cloudinary setup
   const cloudinaryUrl = import.meta.env.VITE_APP_CLOUDINARY_URL;
-  const cloudinaryUploadPreset = import.meta.env.VITE_APP_CLOUDINARY_UPLOAD_PRESET;  
+  const cloudinaryUploadPreset = import.meta.env
+    .VITE_APP_CLOUDINARY_UPLOAD_PRESET;
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -64,7 +65,11 @@ const Admin = () => {
   };
 
   const handleAddUser = async () => {
-    if (!newUser.username.trim() || !newUser.password.trim() || !newUser.phone.trim()) {
+    if (
+      !newUser.username.trim() ||
+      !newUser.password.trim() ||
+      !newUser.phone.trim()
+    ) {
       return alert("Fields cannot be empty!");
     }
 
@@ -153,6 +158,7 @@ const Admin = () => {
             <option value="staff">Staff</option>
             <option value="visitor">Visitor</option>
             <option value="guard">Guard</option>
+            <option value="warden">Warden</option>
           </select>
 
           <label className="font-semibold">Status:</label>
@@ -194,6 +200,8 @@ const Admin = () => {
                 className={`mt-2 px-3 py-1 text-sm font-bold rounded-full ${
                   user.status === "in"
                     ? "bg-green-500 text-white"
+                    : user.status === "home"
+                    ? "bg-yellow-400 text-black"
                     : "bg-red-500 text-white"
                 }`}
               >

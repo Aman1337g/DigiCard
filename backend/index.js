@@ -159,7 +159,7 @@ app.post("/api/requests", async (req, res) => {
   const { username, role, requestType, purpose, image } = req.body;
   try {
     const existing = await client.query(
-      `SELECT * FROM requests WHERE username = $1 AND status = 'Pending'`,
+      `SELECT * FROM requests WHERE username = $1 AND status = 'Pending' AND type IN ('in', 'out')`,
       [username]
     );
     if (existing.rows.length > 0) {
@@ -243,6 +243,69 @@ app.post("/api/alert", async (req, res) => {
   } catch (error) {
     console.error("Error sending alerts:", error);
     res.status(500).json({ error: "Failed to send alerts" });
+  }
+});
+
+
+
+app.get("/api/warden/requests/pending", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM requests WHERE type = 'OOHostel' AND status = 'Pending' ORDER BY requested_at DESC`
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching OOHostel requests:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+// Warden route to approve or reject 'OOHostel' requests
+app.patch("/api/warden/requests/:id/:action", async (req, res) => {
+  const { id, action } = req.params;
+  if (!["approve", "reject"].includes(action)) {
+    return res.status(400).json({ error: "Invalid action" });
+  }
+
+  try {
+    const requestRes = await pool.query(
+      `SELECT * FROM requests WHERE id = $1 AND type = 'OOHostel' AND status = 'Pending'`,
+      [id]
+    );
+
+    if (requestRes.rows.length === 0) {
+      return res.status(404).json({ error: "No pending OOHostel request found" });
+    }
+
+    const request = requestRes.rows[0];
+
+    await pool.query(`UPDATE requests SET status = $1 WHERE id = $2`, [
+      action.charAt(0).toUpperCase() + action.slice(1),
+      id,
+    ]);
+
+    if (action === "approve") {
+      const userRes = await pool.query(
+        `SELECT status FROM users WHERE username = $1`,
+        [request.username]
+      );
+
+      if (userRes.rows.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      const newStatus = "home";
+
+      await pool.query(`UPDATE users SET status = $1 WHERE username = $2`, [
+        newStatus,
+        request.username,
+      ]);
+    }
+
+    res.status(200).json({ message: `OOHostel request ${action}d successfully` });
+  } catch (error) {
+    console.error("Error processing OOHostel request:", error);
+    res.status(500).json({ error: "Server error" });
   }
 });
 

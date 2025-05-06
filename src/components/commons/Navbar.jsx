@@ -13,7 +13,7 @@ const Navbar = () => {
         {/* Logo and Hamburger Menu */}
         <div className="flex items-center">
           <button
-            className="md:hidden text-white text-2xl focus:outline-none"
+            className="sm:hidden text-white text-2xl focus:outline-none"
             onClick={() => setIsOpen(!isOpen)}
           >
             {isOpen ? <FaTimes /> : <FaBars />}
@@ -22,27 +22,30 @@ const Navbar = () => {
 
         {/* Navigation Links */}
         <div
-          className={`md:flex md:gap-6 md:static absolute top-16 left-0 w-full bg-gray-800 p-4 md:p-0 transition-all ${
+          className={`sm:flex sm:gap-6 sm:static absolute top-16 left-0 w-full bg-gray-800 p-4 sm:p-0 transition-all ${
             isOpen ? "block" : "hidden"
           }`}
         >
-          <Link to="/admin" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/admin" className="block sm:inline-block py-2 hover:text-gray-300">
             Admin
           </Link>
-          <Link to="/guard" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/guard" className="block sm:inline-block py-2 hover:text-gray-300">
             Guard
           </Link>
-          <Link to="/student" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/student" className="block sm:inline-block py-2 hover:text-gray-300">
             Student
           </Link>
-          <Link to="/faculty" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/faculty" className="block sm:inline-block py-2 hover:text-gray-300">
             Faculty
           </Link>
-          <Link to="/staff" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/staff" className="block sm:inline-block py-2 hover:text-gray-300">
             Staff
           </Link>
-          <Link to="/visitor" className="block md:inline-block py-2 hover:text-gray-300">
+          <Link to="/visitor" className="block sm:inline-block py-2 hover:text-gray-300">
             Visitor
+          </Link>
+          <Link to="/warden" className="block sm:inline-block py-2 hover:text-gray-300">
+            Warden
           </Link>
         </div>
 

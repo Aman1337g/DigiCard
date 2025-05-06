@@ -56,7 +56,7 @@ const Guard = () => {
 
   const filteredRequests =
     filter === "all" ? requests : requests.filter((r) => r.role === filter);
-
+  console.log(filteredRequests)
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Guard Panel</h2>
@@ -102,7 +102,7 @@ const Guard = () => {
                 <span className="text-blue-600 font-bold">{req.role}</span>, has
                 requested to{" "}
                 <span className="font-bold text-green-600">
-                  {req.requestType === "in" ? "come in" : "go out"}
+                  {req.type === "in" ? "come in" : "go out"}
                 </span>{" "}
                 for {req.purpose}.
               </p>
