@@ -5,13 +5,19 @@ const Faculty = () => {
   const { user } = useContext(UserContext);
   const [request, setRequest] = useState({ requestType: "out", purpose: "" });
   const [loading, setLoading] = useState(true);
+  const [userStatus, setUserStatus] = useState(null);
 
   useEffect(() => {
+    let interval;
+
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/users/${user.username}`);
+        const res = await fetch(
+          `http://localhost:3000/api/users/${user.username}`
+        );
         const data = await res.json();
         if (data?.status) {
+          setUserStatus(data.status);
           setRequest((prev) => ({
             ...prev,
             requestType: data.status === "in" ? "out" : "in",
@@ -19,13 +25,17 @@ const Faculty = () => {
         }
       } catch (err) {
         console.error("Error fetching user status:", err);
-        alert("Failed to fetch user status.");
       } finally {
         setLoading(false);
       }
     };
 
-    if (user?.username) fetchStatus();
+    if (user?.username) {
+      fetchStatus(); // initial call
+      interval = setInterval(fetchStatus, 10000); // every 10 seconds
+    }
+
+    return () => clearInterval(interval); // cleanup on unmount
   }, [user]);
 
   const handleChange = (e) => {
@@ -37,7 +47,9 @@ const Faculty = () => {
     if (!request.purpose.trim()) return alert("Purpose cannot be empty!");
 
     try {
-      const res = await fetch(`http://localhost:3000/api/requests/${user.username}`);
+      const res = await fetch(
+        `http://localhost:3000/api/requests/${user.username}`
+      );
       const data = await res.json();
 
       if (data && data.length > 0) {
@@ -49,6 +61,7 @@ const Faculty = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username: user.username,
+          image: user.image,
           role: "faculty",
           ...request,
         }),
@@ -76,9 +89,29 @@ const Faculty = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">
+      <div className="w-24 rounded-full overflow-hidden">
+        <img src={user?.image} alt="User" />
+      </div>
       <h2 className="text-2xl font-bold text-gray-800 mb-4">
         Welcome, {user?.username} (Faculty)
       </h2>
+      <div className="overflow-hidden w-full max-w-md h-10">
+        <h3
+          className={`animate-slidein-pulse text-base font-semibold text-center ${
+            userStatus === "in"
+              ? "text-blue-600"
+              : userStatus === "out"
+              ? "text-green-600"
+              : userStatus === "hostel"
+              ? "text-orange-600"
+              : "text-yellow-600"
+          }`}
+        >
+          {userStatus === "in" && "You are allowed enter the campus."}
+          {userStatus === "out" && "You are allowed to leave the campus."}
+          {userStatus === "home" && "You are allowed to go home."}
+        </h3>
+      </div>
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"

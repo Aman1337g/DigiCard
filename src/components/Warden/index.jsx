@@ -34,8 +34,15 @@ const Warden = () => {
   };
 
   useEffect(() => {
-    fetchOOHostelRequests();
+    fetchOOHostelRequests(); // Initial fetch
+  
+    const intervalId = setInterval(() => {
+      fetchOOHostelRequests();
+    }, 60000); // 60,000 ms = 1 minute
+  
+    return () => clearInterval(intervalId); // Cleanup on unmount
   }, []);
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-6">

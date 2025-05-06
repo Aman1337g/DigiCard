@@ -14,9 +14,13 @@ const Student = () => {
   const [userStatus, setUserStatus] = useState(null);
 
   useEffect(() => {
+    let interval;
+
     const fetchStatus = async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/users/${user.username}`);
+        const res = await fetch(
+          `http://localhost:3000/api/users/${user.username}`
+        );
         const data = await res.json();
         if (data?.status) {
           setUserStatus(data.status);
@@ -27,15 +31,17 @@ const Student = () => {
         }
       } catch (err) {
         console.error("Error fetching user status:", err);
-        alert("Failed to fetch user status.");
       } finally {
         setLoading(false);
       }
     };
 
     if (user?.username) {
-      fetchStatus();
+      fetchStatus(); // initial call
+      interval = setInterval(fetchStatus, 10000); // every 10 seconds
     }
+
+    return () => clearInterval(interval); // cleanup on unmount
   }, [user]);
 
   const handleRequestChange = (e) => {
@@ -51,7 +57,9 @@ const Student = () => {
     if (!request.purpose.trim()) return alert("Purpose cannot be empty!");
 
     try {
-      const res = await fetch(`http://localhost:3000/api/requests/${user.username}`);
+      const res = await fetch(
+        `http://localhost:3000/api/requests/${user.username}`
+      );
       const data = await res.json();
       if (data && data.length > 0) {
         return alert("You already have a pending request!");
@@ -88,7 +96,9 @@ const Student = () => {
     }
 
     try {
-      const res = await fetch(`http://localhost:3000/api/requests/${user.username}`);
+      const res = await fetch(
+        `http://localhost:3000/api/requests/${user.username}`
+      );
       const data = await res.json();
       if (data && data.length > 0) {
         return alert("You already have a pending request!");
@@ -135,6 +145,24 @@ const Student = () => {
       <h2 className="text-2xl font-bold text-gray-800">
         Welcome, {user?.username} (Student)
       </h2>
+      <div className="overflow-hidden w-full max-w-md h-10">
+        <h3
+          className={`animate-slidein-pulse text-base font-semibold text-center ${
+            userStatus === "in"
+              ? "text-blue-600"
+              : userStatus === "out"
+              ? "text-green-600"
+              : userStatus === "hostel"
+              ? "text-orange-600"
+              : "text-yellow-600"
+          }`}
+        >
+          {userStatus === "in" && "You are allowed enter the campus."}
+          {userStatus === "out" && "You are allowed to leave the campus."}
+          {userStatus === "home" && "You are allowed to go home."}
+        </h3>
+      </div>
+
       <div className="flex space-x-4">
         <button
           onClick={() => setActiveTab("gate")}
@@ -146,19 +174,21 @@ const Student = () => {
         >
           Gate Pass
         </button>
-        {userStatus !=="home"&&<button
-          onClick={() => setActiveTab("leave")}
-          className={`py-2 px-4 rounded-lg font-semibold ${
-            activeTab === "leave"
-              ? "bg-red-500 text-white"
-              : "bg-gray-200 text-gray-800"
-          }`}
-        >
-          Leave Request
-        </button>}
+        {userStatus !== "home" && (
+          <button
+            onClick={() => setActiveTab("leave")}
+            className={`py-2 px-4 rounded-lg font-semibold ${
+              activeTab === "leave"
+                ? "bg-red-500 text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+          >
+            Leave Request
+          </button>
+        )}
       </div>
 
-      {activeTab === "gate"  && (
+      {activeTab === "gate" && (
         <form
           onSubmit={handleRequestSubmit}
           className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"
@@ -192,7 +222,7 @@ const Student = () => {
         </form>
       )}
 
-      {activeTab === "leave"  && (
+      {activeTab === "leave" && (
         <form
           onSubmit={handleLeaveSubmit}
           className="bg-white p-6 rounded-lg shadow-md w-full max-w-md"
