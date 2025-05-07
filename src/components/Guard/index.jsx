@@ -22,7 +22,7 @@ const Guard = () => {
 
   const fetchRequests = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/requests/pending");
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/requests/pending");
       const data = await res.json();
       setRequests(data);
     } catch (error) {
@@ -51,7 +51,7 @@ const Guard = () => {
   const handleRequestAction = async (username, action) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/requests/${username}/${action}`,
+        `https://digicard-backend-fgfe.onrender.com/api/requests/${username}/${action}`,
         {
           method: "PATCH",
         }
@@ -69,7 +69,7 @@ const Guard = () => {
 
   const sendAlert = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/alert", {
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/alert", {
         method: "POST",
       });
       const data = await res.json();
@@ -113,7 +113,7 @@ const Guard = () => {
     }
 
     try {
-      const res = await fetch("http://localhost:3000/api/users", {
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...newVisitor, name: newVisitor.username }),

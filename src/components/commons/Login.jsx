@@ -16,7 +16,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:3000/api/users");
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/users");
       const users = await res.json();
 
       if (username === "admin" && password === "admin") {

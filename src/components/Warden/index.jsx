@@ -6,7 +6,7 @@ const Warden = () => {
 
   const fetchOOHostelRequests = async () => {
     try {
-      const res = await fetch("http://localhost:3000/api/warden/requests/pending");
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/warden/requests/pending");
       const data = await res.json();
       setRequests(data);
     } catch (err) {
@@ -18,7 +18,7 @@ const Warden = () => {
 
   const handleAction = async (id, action) => {
     try {
-      const res = await fetch(`http://localhost:3000/api/warden/requests/${id}/${action}`, {
+      const res = await fetch(`https://digicard-backend-fgfe.onrender.com/api/warden/requests/${id}/${action}`, {
         method: "PATCH",
       });
       if (res.ok) {

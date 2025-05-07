@@ -19,7 +19,7 @@ const Student = () => {
     const fetchStatus = async () => {
       try {
         const res = await fetch(
-          `http://localhost:3000/api/users/${user.username}`
+          `https://digicard-backend-fgfe.onrender.com/api/users/${user.username}`
         );
         const data = await res.json();
         if (data?.status) {
@@ -58,14 +58,14 @@ const Student = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/requests/${user.username}`
+        `https://digicard-backend-fgfe.onrender.com/api/requests/${user.username}`
       );
       const data = await res.json();
       if (data && data.length > 0) {
         return alert("You already have a pending request!");
       }
 
-      const submitRes = await fetch("http://localhost:3000/api/requests", {
+      const submitRes = await fetch("https://digicard-backend-fgfe.onrender.com/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,14 +97,14 @@ const Student = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/requests/${user.username}`
+        `https://digicard-backend-fgfe.onrender.com/api/requests/${user.username}`
       );
       const data = await res.json();
       if (data && data.length > 0) {
         return alert("You already have a pending request!");
       }
 
-      const submitRes = await fetch("http://localhost:3000/api/requests", {
+      const submitRes = await fetch("https://digicard-backend-fgfe.onrender.com/api/requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

@@ -46,14 +46,14 @@ const Admin = () => {
       try {
         const [usersRes, statsRes, requestsRes, offendersRes] =
           await Promise.all([
-            fetch("http://localhost:3000/api/users"),
-            fetch("http://localhost:3000/api/userstats").catch(() => ({
+            fetch("https://digicard-backend-fgfe.onrender.com/api/users"),
+            fetch("https://digicard-backend-fgfe.onrender.com/api/userstats").catch(() => ({
               ok: false,
             })),
-            fetch("http://localhost:3000/api/requeststats").catch(() => ({
+            fetch("https://digicard-backend-fgfe.onrender.com/api/requeststats").catch(() => ({
               ok: false,
             })),
-            fetch("http://localhost:3000/api/students/offenders"),
+            fetch("https://digicard-backend-fgfe.onrender.com/api/students/offenders"),
           ]);
 
         const usersData = await usersRes.json();
@@ -89,7 +89,7 @@ const Admin = () => {
   const handleClearOffences = async (username) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/students/${username}/clear-offences`,
+        `https://digicard-backend-fgfe.onrender.com/api/students/${username}/clear-offences`,
         {
           method: "PATCH",
         }
@@ -147,7 +147,7 @@ const Admin = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:3000/api/users", {
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -181,7 +181,7 @@ const Admin = () => {
     if (!window.confirm(`Are you sure you want to delete ${username}?`)) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/api/users/${username}`, {
+      const res = await fetch(`https://digicard-backend-fgfe.onrender.com/api/users/${username}`, {
         method: "DELETE",
       });
 
@@ -207,7 +207,7 @@ const Admin = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/usersearch?query=${searchQuery}`
+        `https://digicard-backend-fgfe.onrender.com/api/usersearch?query=${searchQuery}`
       );
       const data = await res.json();
       setSearchResults(data);
@@ -222,7 +222,7 @@ const Admin = () => {
       return;
 
     try {
-      const res = await fetch("http://localhost:3000/api/alert", {
+      const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/alert", {
         method: "POST",
       });
       const data = await res.json();
