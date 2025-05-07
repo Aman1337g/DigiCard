@@ -19,7 +19,7 @@ const Login = () => {
       const res = await fetch("https://digicard-backend-fgfe.onrender.com/api/users");
       const users = await res.json();
 
-      if (username === "admin" && password === "admin") {
+      if (username === import.meta.env.VITE_APP_ADMIN_USERNAME && password === import.meta.env.VITE_APP_ADMIN_PASSWORD) {
         login(username, "admin","https://res.cloudinary.com/dli8am5jx/image/upload/v1746353904/odd6tcqgspepommxrj3b.png");
         return;
       }
