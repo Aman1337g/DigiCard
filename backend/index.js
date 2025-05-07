@@ -25,18 +25,19 @@ const client = new Pool({
 // Create tables if not already created
 async function createTables() {
   const createUsersTable = `
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(50) UNIQUE NOT NULL,
-      name VARCHAR(100) NOT NULL,
-      password TEXT NOT NULL,
-      image TEXT,
-      phone VARCHAR(15),
-      role VARCHAR(50) DEFAULT 'Student',
-      status VARCHAR(20) DEFAULT 'in',
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
-  `;
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    password TEXT NOT NULL,
+    image TEXT,
+    phone VARCHAR(15),
+    role VARCHAR(50) DEFAULT 'Student',
+    status VARCHAR(20) DEFAULT 'in',
+    offences INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`;
 
   const createRequestsTable = `
     CREATE TABLE IF NOT EXISTS requests (
@@ -80,7 +81,7 @@ app.patch("/api/requests/:username/:action", async (req, res) => {
     const request = requestRes.rows[0];
 
     await pool.query(`UPDATE requests SET status = $1 WHERE id = $2`, [
-      action.charAt(0).toUpperCase() + action.slice(1),
+      action==="approve"?"Approved":"Rejected",
       request.id,
     ]);
 
@@ -138,6 +139,29 @@ app.post("/api/users", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Route to delete a user by username
+app.delete("/api/users/:username", async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    // First delete all requests associated with this user (optional, for cleanup)
+    await pool.query(`DELETE FROM requests WHERE username = $1`, [username]);
+
+    // Then delete the user
+    const result = await pool.query(`DELETE FROM users WHERE username = $1 RETURNING *`, [username]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ message: "User deleted successfully", user: result.rows[0] });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 // Route to check if a user has any pending requests
 app.get("/api/requests/:username", async (req, res) => {
@@ -211,8 +235,21 @@ app.get("/api/users/:username", async (req, res) => {
 app.post("/api/alert", async (req, res) => {
   try {
     // Fetch students who are 'out' and visitors who are 'in'
-    const studentsOut = await pool.query(`SELECT phone FROM users WHERE role = 'student' AND status = 'out'`);
-    const visitorsIn = await pool.query(`SELECT phone FROM users WHERE role = 'visitor' AND status = 'in'`);
+    const studentsOut = await pool.query(
+      `SELECT id, phone FROM users WHERE role = 'student' AND status = 'out'`
+    );
+    const visitorsIn = await pool.query(
+      `SELECT phone FROM users WHERE role = 'visitor' AND status = 'in'`
+    );
+
+    // Increment offences for students who are out
+    const studentIds = studentsOut.rows.map(student => student.id);
+    if (studentIds.length > 0) {
+      await pool.query(
+        `UPDATE users SET offences = offences + 1 WHERE id = ANY($1::int[])`,
+        [studentIds]
+      );
+    }
 
     // Combine phone numbers of students and visitors
     const recipients = [...studentsOut.rows, ...visitorsIn.rows]
@@ -224,29 +261,27 @@ app.post("/api/alert", async (req, res) => {
     }
 
     // Message to send
-    const message = "Greetings from IIIT Bhubaneswar. This is to inform you that your ward is currently outside the campus or, if you are a visitor, you are presently inside the campus. Kindly ensure that students return to campus promptly and visitors exit the premises at the earliest. We appreciate your cooperation in maintaining campus safety and discipline.";
+    const message =
+      "Greetings from IIIT Bhubaneswar. This is to inform you that your ward is currently outside the campus or, if you are a visitor, you are presently inside the campus. Kindly ensure that students return to campus promptly and visitors exit the premises at the earliest. We appreciate your cooperation in maintaining campus safety and discipline.";
 
     // Send SMS using Twilio
-    const promises = recipients.map(phone => {
-      return twilioClient.messages.create({
+    const promises = recipients.map(phone =>
+      twilioClient.messages.create({
         body: message,
-        to: phone, // Phone number from the DB
-        from: process.env.TWILIO_PHONE_NUMBER, // Your Twilio phone number
-      });
-    });
+        to: phone,
+        from: process.env.TWILIO_PHONE_NUMBER,
+      })
+    );
 
     // Wait for all messages to be sent
     await Promise.all(promises);
 
-    // Respond with success
-    res.status(200).json({ message: "Alert sent successfully!" });
+    res.status(200).json({ message: "Alert sent and offences updated successfully!" });
   } catch (error) {
     console.error("Error sending alerts:", error);
     res.status(500).json({ error: "Failed to send alerts" });
   }
 });
-
-
 
 app.get("/api/warden/requests/pending", async (req, res) => {
   try {
@@ -280,7 +315,7 @@ app.patch("/api/warden/requests/:id/:action", async (req, res) => {
     const request = requestRes.rows[0];
 
     await pool.query(`UPDATE requests SET status = $1 WHERE id = $2`, [
-      action.charAt(0).toUpperCase() + action.slice(1),
+      action==="approve"?"Approved":"Rejected",
       id,
     ]);
 
@@ -309,7 +344,155 @@ app.patch("/api/warden/requests/:id/:action", async (req, res) => {
   }
 });
 
-// Start server and create tables
+
+app.get("/api/usersearch", async (req, res) => {
+  const { query } = req.query;
+  try {
+    const result = await client.query(
+      `SELECT * FROM users 
+       WHERE username ILIKE $1 
+       OR role ILIKE $1 
+       OR status ILIKE $1 
+       OR name ILIKE $1 
+       OR phone ILIKE $1`,
+      [`%${query}%`]
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error searching users:", err);
+    res.status(500).json({ error: "Failed to search users." });
+  }
+});
+
+app.get("/api/userstats", async (req, res) => {
+  try {
+    // Count users by role
+    const roleStats = await pool.query(
+      `SELECT role, COUNT(*) as count FROM users GROUP BY role`
+    );
+    
+    // Count users by status
+    const statusStats = await pool.query(
+      `SELECT status, COUNT(*) as count FROM users GROUP BY status`
+    );
+    
+    // Count users in/out/home
+    const inOutStats = await pool.query(
+      `SELECT 
+        SUM(CASE WHEN status = 'in' THEN 1 ELSE 0 END) as in_count,
+        SUM(CASE WHEN status = 'out' THEN 1 ELSE 0 END) as out_count,
+        SUM(CASE WHEN status = 'home' THEN 1 ELSE 0 END) as home_count
+      FROM users`
+    );
+    
+    res.json({
+      byRole: roleStats.rows,
+      byStatus: statusStats.rows,
+      inCampus: inOutStats.rows[0]
+    });
+  } catch (err) {
+    console.error("Error fetching user stats:", err);
+    res.status(500).json({ error: "Failed to fetch user statistics" });
+  }
+});
+
+app.get("/api/requeststats", async (req, res) => {
+  try {
+    // Daily request stats for last 30 days
+    const dailyStats = await pool.query(
+      `SELECT 
+        DATE(requested_at) as date, 
+        COUNT(*) as total_requests,
+        SUM(CASE WHEN status = 'Approved' THEN 1 ELSE 0 END) as approved,
+        SUM(CASE WHEN status = 'Rejected' THEN 1 ELSE 0 END) as rejected,
+        SUM(CASE WHEN status = 'Pending' THEN 1 ELSE 0 END) as pending
+      FROM requests 
+      WHERE requested_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(requested_at) 
+      ORDER BY DATE(requested_at) DESC`
+    );
+    
+    // Count requests by type
+    const typeStats = await pool.query(
+      `SELECT type, COUNT(*) as count FROM requests GROUP BY type`
+    );
+    
+    res.json({
+      daily: dailyStats.rows,
+      byType: typeStats.rows
+    });
+  } catch (err) {
+    console.error("Error fetching request stats:", err);
+    res.status(500).json({ error: "Failed to fetch request statistics" });
+  }
+});
+
+
+app.get("/api/students/offenders", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM users 
+       WHERE role = 'student' AND offences > 1 
+       ORDER BY offences DESC`
+    );
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error("Error fetching offenders:", err);
+    res.status(500).json({ error: "Failed to fetch students with offences" });
+  }
+});
+
+
+app.patch("/api/students/:username/clear-offences", async (req, res) => {
+  const { username } = req.params;
+  try {
+    const result = await pool.query(
+      `UPDATE users 
+       SET offences = 0 
+       WHERE username = $1 
+       RETURNING *`,
+      [username]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+    
+    res.status(200).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error clearing offences:", err);
+    res.status(500).json({ error: "Failed to clear offences" });
+  }
+});
+
+// DELETE route to remove a user by username
+app.delete("/api/users/:username", async (req, res) => {
+  const { username } = req.params;
+
+  try {
+    // First delete all requests associated with this user (optional, for cleanup)
+    await pool.query(`DELETE FROM requests WHERE username = $1`, [username]);
+
+    // Then delete the user
+    const result = await pool.query(
+      `DELETE FROM users WHERE username = $1 RETURNING *`,
+      [username]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json({ 
+      message: "User deleted successfully", 
+      user: result.rows[0] 
+    });
+  } catch (err) {
+    console.error("Error deleting user:", err);
+    res.status(500).json({ error: "Server error during user deletion" });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 client.connect().then(() => {
   createTables();
